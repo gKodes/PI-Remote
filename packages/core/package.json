@@ -1,0 +1,32 @@
+{
+  "name": "@rm/core",
+  "version": "0.0.0",
+  "description": "Core which handles all the requests",
+  "author": "Kamalakar Gadireddy <kamal590@gmail.com>",
+  "homepage": "https://github.com/gKodes/PI-Remote#readme",
+  "license": "ISC",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gKodes/PI-Remote.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/gKodes/PI-Remote/issues"
+  },
+  "type": "module",
+  "dependencies": {
+    "@rm/remote-render": "^0.0.0",
+    "chrome-location": "^1.2.1",
+    "mpv": "^1.0.0",
+    "puppeteer-extra": "^3.2.3",
+    "puppeteer-extra-plugin-adblocker": "^2.12.0",
+    "puppeteer-extra-plugin-stealth": "^2.9.0",
+    "ramda": "^0.27.1"
+  },
+  "devDependencies": {
+    "chrome-launcher": "^0.15.0"
+  }
+}

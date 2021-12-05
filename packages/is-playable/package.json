@@ -1,0 +1,27 @@
+{
+  "name": "@rm/is-playable",
+  "version": "0.0.0",
+  "description": "Help determine if the given source is playable audio or video files",
+  "author": "Kamalakar Gadireddy <kamal590@gmail.com>",
+  "homepage": "https://github.com/gKodes/PI-Remote#readme",
+  "license": "ISC",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gKodes/PI-Remote.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/gKodes/PI-Remote/issues"
+  },
+  "type": "module"
+}

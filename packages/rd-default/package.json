@@ -1,0 +1,26 @@
+{
+  "name": "@rm/rd-default",
+  "version": "0.0.0",
+  "description": "Remote Downloader Default",
+  "author": "Kamalakar Gadireddy <kamal590@gmail.com>",
+  "homepage": "https://github.com/gKodes/PI-Remote#readme",
+  "license": "ISC",
+  "main": "index.js",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gKodes/PI-Remote.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/gKodes/PI-Remote/issues"
+  },
+  "@rd": {
+    "url": "*",
+    "need": [
+      "page"
+    ]
+  }
+}

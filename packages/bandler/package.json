@@ -1,0 +1,27 @@
+{
+  "name": "@rm/bandler",
+  "version": "0.0.0",
+  "description": "> TODO: description",
+  "author": "Kamalakar Gadireddy <kamal590@gmail.com>",
+  "homepage": "https://github.com/gKodes/PI-Remote#readme",
+  "license": "ISC",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gKodes/PI-Remote.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/gKodes/PI-Remote/issues"
+  },
+  "dependencies": {
+    "@babel/core": "^7.16.0",
+    "@babel/parser": "^7.16.4",
+    "@babel/preset-env": "^7.16.4",
+    "@babel/traverse": "^7.16.3",
+    "detective": "^5.2.0",
+    "enhanced-resolve": "^5.8.3"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "PI-Remote",
+  "version": "0.0.1",
+  "description": "Cast Save Play NAS Remote TV Raspberry PI",
+  "repository": "git@github.com:gKodes/PI-Remote.git",
+  "author": "Kamalakar Gadireddy <kamal590@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "puppeteer": "^11.0.0"
+  },
+  "private": "true",
+  "workspaces": [
+    "packages/*"
+  ],
+  "devDependencies": {
+    "lerna": "^4.0.0"
+  }
+}

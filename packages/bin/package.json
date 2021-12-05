@@ -1,0 +1,38 @@
+{
+  "name": "@rm/bin",
+  "version": "0.0.0",
+  "description": "Cast Save Play NAS Remote TV Raspberry PI",
+  "author": "Kamalakar Gadireddy <kamal590@gmail.com>",
+  "homepage": "https://github.com/gKodes/PI-Remote#readme",
+  "license": "ISC",
+  "bin": {
+    "rmd": "./bin/rmd/index.js",
+    "rmc": "./bin/rmc/index.js"
+  },
+  "main": "index.js",
+  "directories": {
+    "test": "__tests__"
+  },
+  "files": [
+    "index.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gKodes/PI-Remote.git"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "bugs": {
+    "url": "https://github.com/gKodes/PI-Remote/issues"
+  },
+  "type": "module",
+  "dependencies": {
+    "@rm/core": "^0.0.0",
+    "@rm/remote-render": "^0.0.0",
+    "fastify": "^3.24.1",
+    "fastify-reply-from": "^6.4.1",
+    "fastify-socket.io": "^3.0.0",
+    "socket.io": "^4.4.0"
+  }
+}
