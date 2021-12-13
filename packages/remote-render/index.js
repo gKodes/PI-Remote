@@ -9,6 +9,8 @@ import fs from "fs";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const CONTEXT_NAME = "__mirror_scripts__";
+
 /**
  * @typedef AttachRendererConfig
  * @type {object}
@@ -23,7 +25,7 @@ const __dirname = path.dirname(__filename);
  * @param {AttachRendererConfig} config
  */
 const attachRenderer = async (page, config) => {
-  if (page._pageBindings.has('cast')) {
+  if (page._pageBindings.has("cast")) {
     return;
   }
 
@@ -45,7 +47,7 @@ const attachRenderer = async (page, config) => {
 
   const sourceInjectionScript = bundler(
     path.resolve(__dirname, "./source/index.js"),
-    babelConfig
+    { babelConfig }
   );
 
   if (config?.viewport) {
@@ -56,23 +58,67 @@ const attachRenderer = async (page, config) => {
     });
   }
 
-  const handler = await frame.evaluateHandle("");
-  // TODO: Figure out a better way to bind function to the given context only or else try to do random function so its hard to detect
-  await page.exposeFunction("cast", (...args) => page.emit("cast", args));
+  // TODO: Check if page already has name context and if so invoke - connect
 
-  fs.writeFileSync('./debug.js', sourceInjectionScript, { encoding: 'utf-8' })
-
-  // NOTE: Using raw client as `evaluateHandle` does not execute string as function
-  await frame._client.send("Runtime.callFunctionOn", {
-    functionDeclaration: `function() { ${sourceInjectionScript} }`,
-    executionContextId: handler._context._contextId,
+  // https://chromedevtools.github.io/devtools-protocol/tot/Page/#method-createIsolatedWorld
+  // https://github.com/puppeteer/puppeteer/issues/2671
+  const client = await page.target().createCDPSession();
+  const isolatedContext = await client.send("Page.createIsolatedWorld", {
+    worldName: CONTEXT_NAME,
+    frameId: frame._id,
   });
+
+  const CONTEXT_BINDING_FN_NAME = "sendMessage";
+
+  console.info(page);
+
+  await client.send("Runtime.addBinding", {
+    name: CONTEXT_BINDING_FN_NAME,
+    executionContextId: isolatedContext.executionContextId,
+  });
+  console.info(`${frame.url()} Binding Done`);
+
+  // TODO: Make this more generic so that we can use it to pass back and fourth more message
+  // page._pageBindings.set("sendMessage", (...args) => {
+  //   // console.info(args);
+  //   // sendMessage.cast.
+  //   page.emit("cast", args);
+  // });
+
+  client.on(
+    "Runtime.bindingCalled",
+    ({ name, payload, executionContextId }) => {
+      if (name === CONTEXT_BINDING_FN_NAME) {
+        const [eventName = "cast", args] = JSON.parse(payload);
+        page.emit("cast", args);
+      }
+    }
+  );
+
+  // fs.writeFileSync("./debug.js", sourceInjectionScript, { encoding: "utf-8" });
+  // NOTE: Using raw client as `evaluateHandle` does not execute string as function
+  await client.send("Runtime.callFunctionOn", {
+    functionDeclaration: `function() { ${sourceInjectionScript} }`,
+    executionContextId: isolatedContext.executionContextId,
+  });
+  console.info(`${frame.url()} Runtime Injected`);
+
+  // await client.send("Runtime.evaluate", {
+  //   expression: "initialize();",
+  //   contextId: isolatedContext.executionContextId,
+  // })
+
+  return async () =>
+    client.send("Runtime.evaluate", {
+      expression: "disconnect();",
+      contextId: isolatedContext.executionContextId,
+    });
 };
 
 // console.info(await attachRenderer());
 
 const viewerScripts = {
-  socketio: bundler(path.resolve(__dirname, "./viewer/socketio.js"))
-}
+  socketio: bundler(path.resolve(__dirname, "./viewer/index.js")),
+};
 
 export { attachRenderer, viewerScripts };

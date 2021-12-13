@@ -1,4 +1,4 @@
-import R, { map, pipe } from "ramda";
+import R from "ramda";
 
 const extractVideoSrc = async (videoTag) => {
   // Get the Element into View
@@ -41,31 +41,12 @@ const extractVideoSrc = async (videoTag) => {
   return videoSource;
 };
 
-const promiseValue = R.prop("value");
-
-const extractVideoTags = pipe(
-  map(promiseValue),
-  R.filter(R.identity),
-  map(extractVideoSrc)
+const extractSource = R.pipe(
+  R.andThen(frame.$("video")),
+  R.ifElse(R.isNil, R.always(null), extractVideoSrc)
 );
 
-const fetchWith = async (source, { page }) => {
-  // await _(url, { page });
-  // TODO: Setup Hooks and hand it over
-  await page.goto(source);
-
-  const sources = (await Promise.allSettled(
-    extractVideoTags(
-      await Promise.allSettled(
-        page.frames().map(async (frame) => await frame.$("video"))
-      )
-    )
-  )).map(promiseValue);
-
-  return sources;
-};
-
-export { fetchWith };
+export { extractSource };
 
 // is-video
 // await fetchPlaybackSource("https://www.ibomma.net/b/dhamaka-telugu-2021-watch-online.html")

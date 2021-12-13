@@ -3,7 +3,6 @@ import path from "path";
 import {
   always,
   andThen,
-  apply,
   bind,
   compose,
   converge,
@@ -41,10 +40,14 @@ const getExtensions = pipe(
   map(async (pkgJson) => {
     const config = configProp(pkgJson);
     if (config) {
-      return {
-        ...(await import(path.dirname(pkgJson.source))),
-        config,
-      };
+      try {
+        return {
+          ...(await import(path.dirname(pkgJson.source))),
+          config,
+        };
+      } catch (error) {
+        console.info(error);
+      }
     }
   }),
   bind(Promise.allSettled, Promise),
@@ -56,12 +59,13 @@ const getExtensions = pipe(
 //   getExtensions("/Users/kgadireddy/Desktop/kamal/dev/PI-Remote/packages")
 // );
 
-const getFetchWith = () => extensions[0].fetchWith;
+const extractSourceWith = () => extensions[0].extractSource;
 
 const loadExtensions = async (sourceDir) => {
   if (!extensions) {
     extensions = await getExtensions(sourceDir);
+    console.info(extensions);
   }
 };
 
-export { getExtensions, getFetchWith, loadExtensions };
+export { getExtensions, extractSourceWith, loadExtensions };

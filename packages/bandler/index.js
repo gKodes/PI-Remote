@@ -6,6 +6,15 @@ const parser = require("@babel/parser"); // parses and returns AST
 const traverse = require("@babel/traverse").default; // walks through AST
 const babel = require("@babel/core"); // main babel functionality
 const detective = require("detective");
+const resolve = require("enhanced-resolve");
+const { ResolvedByTarget } = require("./resolver/plugins/ResolveByTarget");
+
+const defaultConfig = {
+  extensions: [".browser.js", ".js", ".json"],
+  conditionNames: ["import", "default"],
+};
+
+// engine.io-client
 
 /*
  * Given filePath, read and parses module, returns module information
@@ -29,6 +38,11 @@ function createModuleInfo(filePath, localCache) {
     traverse(ast, {
       ImportDeclaration: ({ node }) => {
         deps.push(node.source.value);
+      },
+      ExportDeclaration: ({ node }) => {
+        if (Array.isArray(node.specifiers) && node.specifiers.length) {
+          if (node.source) deps.push(node.source.value);
+        }
       },
     });
     //TODO: Make that configurable
@@ -56,7 +70,7 @@ function createModuleInfo(filePath, localCache) {
  * Given entry path,
  * returns an array containing information from each module
  */
-function createDependencyGraph(entry) {
+function createDependencyGraph(entry, { resolver }) {
   const localCache = { id: 0 };
   const entryInfo = createModuleInfo(entry, localCache);
   const graphArr = [];
@@ -64,18 +78,13 @@ function createDependencyGraph(entry) {
   for (const module of graphArr) {
     module.map = {};
     module.deps.forEach((depPath) => {
-      // TODO: Change to resolve js
       const baseDir = path.dirname(module.filePath);
-      const resolvedPath =
-        depPath[0] === "." ? path.join(baseDir, depPath) : depPath;
-
-      const baseModuleDir = require.resolve(resolvedPath, {
-        paths: require.resolve.paths(baseDir),
-      });
-      const absPath = path.resolve(baseModuleDir);
-
-      const moduleInfo = createModuleInfo(absPath, localCache);
-      graphArr.push(moduleInfo);
+      const resolvedPath = resolver(baseDir, depPath);
+      let moduleInfo = graphArr.find(({ filePath }) => filePath === resolvedPath)
+      if (!moduleInfo) {
+        moduleInfo = createModuleInfo(resolvedPath, localCache);
+        graphArr.push(moduleInfo);
+      }
       module.map[depPath] = moduleInfo.id;
     });
   }
@@ -87,37 +96,29 @@ function createDependencyGraph(entry) {
  * return a bundled code to run the modules
  */
 function pack(graph) {
+  // TODO: Make it no es6
   const isES6 = graph[0].isES6;
   const moduleArgArr = graph.map((module) => {
-    let exportsStatement;
-    if (isES6) {
-      exportsStatement = "exports";
-    } else {
-      exportsStatement = "module";
-    }
     return `${module.id}: {
-        factory: (${exportsStatement}, require) => {
+        factory: (exports, module, require) => {
           ${module.code}
         },
         map: ${JSON.stringify(module.map)}
       }`;
   });
 
-  let factoryExportsStatement;
-  if (isES6) {
-    factoryExportsStatement = "module.exports";
-  } else {
-    factoryExportsStatement = "module";
-  }
-
   const iifeBundler = `(function(modules){
       const require = id => {
-        const {factory, map} = modules[id];
-        const localRequire = requireDeclarationName => require(map[requireDeclarationName]); 
-        const module = {exports: {}};
-        
-        factory(${factoryExportsStatement}, localRequire); 
-        return module.exports; 
+        let {factory, map, exports} = modules[id];
+        const localRequire = requireDeclarationName => require(map[requireDeclarationName]);
+
+        if (!exports) {
+          const module = { exports: {} };
+          factory(module.exports, module, localRequire);
+          exports = modules[id].exports = module.exports
+        }
+
+        return exports;
       } 
       require(0);
     })({${moduleArgArr.join()}})
@@ -125,8 +126,22 @@ function pack(graph) {
   return iifeBundler;
 }
 
-const bundler = (entryFilePath) => {
-  const graph = createDependencyGraph(entryFilePath);
+const DEFAULT_CONFIG = {
+  target: "browser",
+  babelConfig: {
+    presets: ["@babel/preset-env"],
+  },
+};
+
+const bundler = (entryFilePath, config) => {
+  let { resolver, target, babelConfig } = { ...DEFAULT_CONFIG, ...config };
+  if (!resolver && target) {
+    resolver = resolve.create.sync({
+      ...defaultConfig,
+      plugins: [new ResolvedByTarget(target)],
+    });
+  }
+  const graph = createDependencyGraph(entryFilePath, { resolver, babelConfig });
   const bundle = pack(graph);
   return bundle;
 };

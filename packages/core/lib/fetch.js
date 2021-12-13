@@ -1,13 +1,11 @@
 import { attachRenderer } from "@rm/remote-render";
 import { getPageId } from "..";
 import { getPage } from "./browser";
-import { getFetchWith } from "./extensions";
+import { extractSourceWith } from "./extensions";
 
 const fetch = async (source) => {
   const page = await getPage();
   await page.setRequestInterception(true);
-
-  const fetchWith = getFetchWith(source);
 
   page.on("request", (request) => {
     request.continue();
@@ -32,11 +30,18 @@ const fetch = async (source) => {
   //   }
   // });
 
+  await page.goto(source, {
+    waitUntil: "load", // "domcontentloaded",
+  });
+
   // await _(url, { page });
   // TODO: Setup Hooks and hand it over
 
-  await fetchWith(source, { page });
+  console.info(`${page.url()} -- Dom Content Loaded`);
+
+  // await fetchWith(source, { page });
   // await attachRenderer(page);
+  // const fetchWith = getFetchWith(source);
 
   // other actions...
   // await page.close();

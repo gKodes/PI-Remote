@@ -4,7 +4,14 @@ import { attachRenderer, viewerScripts } from "@rm/remote-render";
 import socketioServer from "fastify-socket.io";
 import replyFrom from "fastify-reply-from";
 
-await loadExtensions("/Users/kgadireddy/Desktop/kamal/dev/PI-Remote/packages");
+const MOUSE_BUTTON_MAP = Object.freeze({
+  // none, left, middle, right, back, forward
+  0: 'left',
+  1: 'right',
+  2: 'middle'
+})
+
+// await loadExtensions("/Users/kgadireddy/Desktop/kamal/dev/PI-Remote/packages");
 
 // await fetch("https://www.youtube.com/watch?v=Keme8oxHHPQ");
 // await fetch("https://www.ibomma.net/b/dhamaka-telugu-2021-watch-online.html");
@@ -96,6 +103,8 @@ server.ready(() => {
   const attachNamespace = server.io.of(/^\/attach\/.+$/);
 
   attachNamespace.on("connection", async (socket) => {
+    console.info('Attaching ....')
+
     const [_, __, sessionId] = socket.nsp.name.split("/");
     const page = await getPage(sessionId);
     if (page) {
@@ -103,6 +112,25 @@ server.ready(() => {
       page.on("cast", (message) => {
         socket.emit(...message);
       });
+
+      socket.on("hid.click", ({ x, y, button }) => {
+        console.info( x, y, button );
+        page.mouse.click(x, y, { button: MOUSE_BUTTON_MAP[button] });
+      });
+
+      socket.on("hid.move", ({ x, y }) => {
+        page.mouse.move(x, y);
+      });
+
+      socket.on("hid.keydown", ({ key, text }) => {
+        page.keyboard.down(key, { options: text })
+      });
+
+      socket.on("hid.keyup", ({ key, text }) => {
+        page.keyboard.up(key, { options: text })
+      });
+
+      // page.keyboard.sendCharacter("嗨");
 
       await attachRenderer(page);
     }

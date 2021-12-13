@@ -31,4 +31,19 @@ mirror.clearPage = () => {
   }
 };
 
+//TODO: Tap Scroll, Keyboard and Mouse events
+
+// https://www.npmjs.com/package/@egstad/detect-scroll
+
 export { mirror };
+const registerOnTransport = (transport) => {
+  transport.onAny((name, args) => {
+    const [service, action] = name.split(".");
+    if (service === "cast") {
+      console.info(action, args)
+      mirror[action].apply(mirror, args);
+    }
+  });
+};
+
+export default registerOnTransport;
