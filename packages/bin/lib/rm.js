@@ -6,10 +6,10 @@ import replyFrom from "fastify-reply-from";
 
 const MOUSE_BUTTON_MAP = Object.freeze({
   // none, left, middle, right, back, forward
-  0: 'left',
-  1: 'right',
-  2: 'middle'
-})
+  0: "left",
+  1: "right",
+  2: "middle",
+});
 
 // await loadExtensions("/Users/kgadireddy/Desktop/kamal/dev/PI-Remote/packages");
 
@@ -103,7 +103,7 @@ server.ready(() => {
   const attachNamespace = server.io.of(/^\/attach\/.+$/);
 
   attachNamespace.on("connection", async (socket) => {
-    console.info('Attaching ....')
+    console.info("Attaching ....");
 
     const [_, __, sessionId] = socket.nsp.name.split("/");
     const page = await getPage(sessionId);
@@ -114,7 +114,6 @@ server.ready(() => {
       });
 
       socket.on("hid.click", ({ x, y, button }) => {
-        console.info( x, y, button );
         page.mouse.click(x, y, { button: MOUSE_BUTTON_MAP[button] });
       });
 
@@ -123,16 +122,19 @@ server.ready(() => {
       });
 
       socket.on("hid.keydown", ({ key, text }) => {
-        page.keyboard.down(key, { options: text })
+        page.keyboard.down(key, { options: text });
       });
 
       socket.on("hid.keyup", ({ key, text }) => {
-        page.keyboard.up(key, { options: text })
+        page.keyboard.up(key, { options: text });
       });
 
       // page.keyboard.sendCharacter("嗨");
-
-      await attachRenderer(page);
+      socket.on("hid.info", async ({ screen: { width, height } }) => {
+        await page.setViewport({ width, height });
+        console.info(await page.viewport());
+        await attachRenderer(page);
+      });
     }
   });
 });

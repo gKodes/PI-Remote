@@ -31,7 +31,7 @@ const fetch = async (source) => {
   // });
 
   await page.goto(source, {
-    waitUntil: "load", // "domcontentloaded",
+    waitUntil: "domcontentloaded", // "load"
   });
 
   // await _(url, { page });

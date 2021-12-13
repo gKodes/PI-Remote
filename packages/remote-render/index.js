@@ -70,8 +70,6 @@ const attachRenderer = async (page, config) => {
 
   const CONTEXT_BINDING_FN_NAME = "sendMessage";
 
-  console.info(page);
-
   await client.send("Runtime.addBinding", {
     name: CONTEXT_BINDING_FN_NAME,
     executionContextId: isolatedContext.executionContextId,

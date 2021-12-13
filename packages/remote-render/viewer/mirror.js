@@ -40,7 +40,6 @@ const registerOnTransport = (transport) => {
   transport.onAny((name, args) => {
     const [service, action] = name.split(".");
     if (service === "cast") {
-      console.info(action, args)
       mirror[action].apply(mirror, args);
     }
   });
