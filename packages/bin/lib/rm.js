@@ -3,6 +3,7 @@ import Fastify from "fastify";
 import { attachRenderer, viewerScripts } from "@rm/remote-render";
 import socketioServer from "fastify-socket.io";
 import replyFrom from "fastify-reply-from";
+import { HIDController } from "../../remote-render/controller";
 
 const MOUSE_BUTTON_MAP = Object.freeze({
   // none, left, middle, right, back, forward
@@ -113,28 +114,7 @@ server.ready(() => {
         socket.emit(...message);
       });
 
-      socket.on("hid.click", ({ x, y, button }) => {
-        page.mouse.click(x, y, { button: MOUSE_BUTTON_MAP[button] });
-      });
-
-      socket.on("hid.move", ({ x, y }) => {
-        page.mouse.move(x, y);
-      });
-
-      socket.on("hid.keydown", ({ key, text }) => {
-        page.keyboard.down(key, { options: text });
-      });
-
-      socket.on("hid.keyup", ({ key, text }) => {
-        page.keyboard.up(key, { options: text });
-      });
-
-      // page.keyboard.sendCharacter("嗨");
-      socket.on("hid.info", async ({ screen: { width, height } }) => {
-        await page.setViewport({ width, height });
-        console.info(await page.viewport());
-        await attachRenderer(page);
-      });
+      new HIDController(page, socket);
     }
   });
 });
