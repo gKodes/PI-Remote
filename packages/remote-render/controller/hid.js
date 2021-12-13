@@ -1,6 +1,13 @@
 import { equals, complement } from "ramda";
 import { attachRenderer } from "..";
 
+const MOUSE_BUTTON_MAP = Object.freeze({
+  // none, left, middle, right, back, forward
+  0: "left",
+  1: "right",
+  2: "middle",
+});
+
 export class HIDController {
   constructor(page, eventSource) {
     this.page = page;

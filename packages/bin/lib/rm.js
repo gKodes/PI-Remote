@@ -1,16 +1,9 @@
 import { loadExtensions, fetch, getPage } from "@rm/core";
 import Fastify from "fastify";
-import { attachRenderer, viewerScripts } from "@rm/remote-render";
+import { viewerScripts } from "@rm/remote-render";
 import socketioServer from "fastify-socket.io";
 import replyFrom from "fastify-reply-from";
 import { HIDController } from "../../remote-render/controller";
-
-const MOUSE_BUTTON_MAP = Object.freeze({
-  // none, left, middle, right, back, forward
-  0: "left",
-  1: "right",
-  2: "middle",
-});
 
 // await loadExtensions("/Users/kgadireddy/Desktop/kamal/dev/PI-Remote/packages");
 
