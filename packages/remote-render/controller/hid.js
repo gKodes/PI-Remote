@@ -8,6 +8,8 @@ const MOUSE_BUTTON_MAP = Object.freeze({
   2: "middle",
 });
 
+const TO_IGNORE = ["constructor", "initialize"];
+
 export class HIDController {
   constructor(page, eventSource) {
     this.page = page;
@@ -18,10 +20,12 @@ export class HIDController {
 
   initialize(eventSource) {
     this.eventSource = eventSource;
-    Object.keys(this)
+    Object.getOwnPropertyNames(HIDController.prototype)
       .filter(complement(equals("initialize")))
       .forEach((eventName) => {
-        eventSource.on(`hid.${eventName}`, this[eventName].bind(this));
+        if (typeof this[eventName] === "function") {
+          eventSource.on(`hid.${eventName}`, this[eventName].bind(this));
+        }
       });
   }
 
@@ -50,5 +54,14 @@ export class HIDController {
 
   async screen({ width, height }) {
     await this.page.setViewport({ width, height });
+  }
+
+  async scrollTo({ x, y }) {
+    await this.page.evaluate(
+      ({ x, y }) => {
+        window.scrollTo(x, y);
+      },
+      { x, y }
+    );
   }
 }

@@ -59,6 +59,8 @@ const attachRenderer = async (page, config) => {
   }
 
   // TODO: Check if page already has name context and if so invoke - connect
+  // TODO: Move the blow logic into ints owen file
+  // TODO: Handle Navigation Events
 
   // https://chromedevtools.github.io/devtools-protocol/tot/Page/#method-createIsolatedWorld
   // https://github.com/puppeteer/puppeteer/issues/2671
@@ -70,22 +72,16 @@ const attachRenderer = async (page, config) => {
 
   const CONTEXT_BINDING_FN_NAME = "sendMessage";
 
+  // TODO: Make this more generic so that we can use it to pass back and fourth more message
   await client.send("Runtime.addBinding", {
     name: CONTEXT_BINDING_FN_NAME,
     executionContextId: isolatedContext.executionContextId,
   });
   console.info(`${frame.url()} Binding Done`);
 
-  // TODO: Make this more generic so that we can use it to pass back and fourth more message
-  // page._pageBindings.set("sendMessage", (...args) => {
-  //   // console.info(args);
-  //   // sendMessage.cast.
-  //   page.emit("cast", args);
-  // });
-
   client.on(
     "Runtime.bindingCalled",
-    ({ name, payload, executionContextId }) => {
+    ({ name, payload }) => {
       if (name === CONTEXT_BINDING_FN_NAME) {
         const [eventName = "cast", args] = JSON.parse(payload);
         page.emit("cast", args);

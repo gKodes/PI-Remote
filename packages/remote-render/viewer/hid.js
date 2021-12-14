@@ -11,8 +11,8 @@ const registerEvents = (target, events) => {
 
 // Use an existing lib to help with this
 const getScreenDetails = () => ({
-  height: screen?.availHeight || window.innerHeight,
-  width: screen?.availWidth || window.innerWidth,
+  height: window.innerHeight,
+  width: window.innerWidth,
   orientation: screen?.orientation?.type || window?.orientation,
 });
 
@@ -21,18 +21,31 @@ const registerOnTransport = (transport) => {
     transport.emit(`hid.${eventName}`, ...args);
   };
 
+  let ticking = false;
+
   const documentEvents = {
     // mousedown: ({ button }) => hid("mousedown", { button }),
     // mouseup: ({ button }) => hid("mouseup", { button }),
     click: ({ clientX: x, clientY: y, button }) =>
       hid("click", { x, y, button }),
-    mousemove: (({ clientX: x, clientY: y }) => {
+    mousemove: debounce(({ clientX: x, clientY: y }) => {
       hid("move", { x, y });
     }, DEBOUNCE_INTERVAL),
     // TODO: Drag Events
     // keypress: ({ charCode }) => hid("click", { key: charCode }),
     keydown: ({ code, target }) => hid("keydown", { key: code, text: target?.value }),
     keyup: ({ code, target }) => hid("keyup", { key: code, text: target?.value  }),
+    scroll: (event) => {
+      if (!ticking) {
+        window.requestAnimationFrame(function() {
+          console.info(event)
+          hid("scrollTo", { x: window.scrollX, y: window.scrollY });
+          ticking = false;
+        });
+    
+        ticking = true;
+      }
+    }
   };
 
   const windowEvents = {
