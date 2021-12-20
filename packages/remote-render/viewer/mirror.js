@@ -29,6 +29,7 @@ mirror.clearPage = () => {
   while (document.firstChild) {
     document.removeChild(document.firstChild);
   }
+  mirror.idMap = {};
 };
 
 //TODO: Tap Scroll, Keyboard and Mouse events
