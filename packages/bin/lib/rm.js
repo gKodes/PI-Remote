@@ -4,6 +4,7 @@ import { viewerScripts } from "@rm/remote-render";
 import socketioServer from "fastify-socket.io";
 import replyFrom from "fastify-reply-from";
 import { HIDController } from "../../remote-render/controller";
+import { RenderManager } from "@rm/remote-render/RenderManager";
 
 // await loadExtensions("/Users/kgadireddy/Desktop/kamal/dev/PI-Remote/packages");
 
@@ -102,8 +103,7 @@ server.ready(() => {
     const [_, __, sessionId] = socket.nsp.name.split("/");
     const page = await getPage(sessionId);
     if (page) {
-      socket.emit("cast.clearPage", []);
-      page.on("cast", (message) => {
+      page.on(RenderManager.PAGE_EVENT_MESSAGE, (message) => {
         socket.emit(...message);
       });
 
