@@ -7,7 +7,7 @@ const registerEvents = (target, events) => {
   Object.keys(events).forEach((eventName) => {
     target.addEventListener(eventName, events[eventName], true);
   });
-}
+};
 
 // Use an existing lib to help with this
 const getScreenDetails = () => ({
@@ -16,49 +16,72 @@ const getScreenDetails = () => ({
   orientation: screen?.orientation?.type || window?.orientation,
 });
 
+const identity = (value) => value;
+
 const registerOnTransport = (transport) => {
-  const hid = (eventName, ...args) => {
-    transport.emit(`hid.${eventName}`, ...args);
-  };
+  const hid =
+    (eventName, fn = identity) =>
+    (event) => {
+      event.preventDefault && event.preventDefault();
+      // If array destructure
+      transport.emit(`hid.${eventName}`, fn(event));
+    };
 
   let ticking = false;
 
   const documentEvents = {
     // mousedown: ({ button }) => hid("mousedown", { button }),
     // mouseup: ({ button }) => hid("mouseup", { button }),
-    click: ({ clientX: x, clientY: y, button }) =>
-      hid("click", { x, y, button }),
-    mousemove: debounce(({ clientX: x, clientY: y }) => {
-      hid("move", { x, y });
-    }, DEBOUNCE_INTERVAL),
+    click: hid("click", ({ clientX: x, clientY: y, button }) => ({
+      x,
+      y,
+      button,
+    })),
+    mousemove: debounce(
+      hid(
+        "move",
+        ({ clientX: x, clientY: y }) => ({
+          x,
+          y,
+        })
+      ),
+      DEBOUNCE_INTERVAL
+    ),
     // TODO: Drag Events
     // keypress: ({ charCode }) => hid("click", { key: charCode }),
-    keydown: ({ code, target }) => hid("keydown", { key: code, text: target?.value }),
-    keyup: ({ code, target }) => hid("keyup", { key: code, text: target?.value  }),
-    scroll: (event) => {
+    keydown: hid("keydown", ({ code, target }) => ({
+      key: code,
+      text: target?.value,
+    })),
+    keyup: hid("keyup", ({ code, target }) => ({
+      key: code,
+      text: target?.value,
+    })),
+    scroll: hid("scrollTo", () => {
       if (!ticking) {
-        window.requestAnimationFrame(function() {
-          console.info(event)
-          hid("scrollTo", { x: window.scrollX, y: window.scrollY });
+        window.requestAnimationFrame(function () {
           ticking = false;
+          return { x: window.scrollX, y: window.scrollY };
         });
-    
+
         ticking = true;
       }
-    }
+    }),
   };
 
   const windowEvents = {
-    orientationchange: () => { hid("screen", getScreenDetails()) },
-    resize: () => { hid("screen", getScreenDetails()) },
+    orientationchange: hid("screen", getScreenDetails()),
+    resize: hid("screen", getScreenDetails()),
   };
 
-  registerEvents(document, documentEvents)
-  registerEvents(window, windowEvents)
+  registerEvents(document, documentEvents);
+  registerEvents(window, windowEvents);
+
+  const hidInfo = hid("info");
 
   transport.on("connect", () => {
     const uaParser = new UAParser();
-    hid("info", {
+    hidInfo({
       ...uaParser.getResult(),
       screen: getScreenDetails(),
     });
