@@ -1,7 +1,7 @@
 {
-  "name": "@rm/rd-default",
+  "name": "@rm/crew-default",
   "version": "0.0.0",
-  "description": "Remote Downloader Default",
+  "description": "Default crew for Remote Media",
   "author": "Kamalakar Gadireddy <kamal590@gmail.com>",
   "homepage": "https://github.com/gKodes/PI-Remote#readme",
   "license": "ISC",
@@ -17,10 +17,14 @@
   "bugs": {
     "url": "https://github.com/gKodes/PI-Remote/issues"
   },
-  "@rd": {
-    "url": "*",
-    "need": [
-      "page"
+  "rd": {
+    "type": "crew",
+    "mimeTypes": [
+      "video/*"
+    ],
+    "fileTypes": [
+      "mp[0-9]",
+      "m3u([8]*)"
     ]
   }
 }

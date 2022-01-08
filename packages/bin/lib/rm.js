@@ -1,10 +1,11 @@
-import { loadExtensions, fetch, getPage } from "@rm/core";
+import { Director } from "@rm/core";
 import Fastify from "fastify";
 import { viewerScripts } from "@rm/remote-render";
 import socketioServer from "fastify-socket.io";
 import replyFrom from "fastify-reply-from";
-import { HIDController } from "../../remote-render/controller";
 import { RenderManager } from "@rm/remote-render/RenderManager";
+import { pipe, nth, split } from "ramda";
+import { HIDController } from "../../remote-render/controller";
 
 // await loadExtensions("/Users/kgadireddy/Desktop/kamal/dev/PI-Remote/packages");
 
@@ -15,11 +16,19 @@ const server = Fastify({
   logger: true,
 });
 
+const instance = new Director(
+  "/Users/kgadireddy/Desktop/kamal/dev/PI-Remote/packages"
+);
+
 server.register(socketioServer);
 server.register(replyFrom);
 
+const getPage = (director, id) => {
+  return director.getStage({ id })?.getPage();
+};
+
 server.post(
-  "/get",
+  "/stage",
   {
     schema: {
       body: {
@@ -32,7 +41,7 @@ server.post(
       body: { url },
     } = request;
     reply.send({
-      id: await fetch(url),
+      id: (await instance.compose(url)).id,
     });
   }
 );
@@ -43,17 +52,17 @@ server.get("/viewer.js", (request, reply) => {
 });
 
 server.get(
-  "/attach/:sessionId",
+  "/stage/:stageId/view",
   {
     schema: {
       querystring: {
-        sessionId: { type: "string" },
+        stageId: { type: "string" },
       },
     },
   },
   async (request, reply) => {
     const {
-      params: { sessionId },
+      params: { stageId },
     } = request;
 
     reply.type("text/html");
@@ -71,18 +80,18 @@ server.get(
   }
 );
 
-server.get("/attach/:sessionId/*", async (request, reply) => {
+server.get("/stage/:stageId/*", async (request, reply) => {
   const {
-    params: { "*": resource, sessionId },
+    params: { "*": resource, stageId },
   } = request;
 
   if (resource) {
-    const page = await getPage(sessionId);
+    const page = getPage(instance, stageId);
     if (page) {
-      const sourceURL = new URL(page.url());
+      const sourceURL = page.url();
 
       reply.from(resource, {
-        getUpstream: () => sourceURL.origin,
+        getUpstream: () => sourceURL.url.origin,
         rewriteRequestHeaders: (req, headers) => {
           headers.referer = sourceURL.href;
           return headers;
@@ -94,14 +103,21 @@ server.get("/attach/:sessionId/*", async (request, reply) => {
   }
 });
 
-server.ready(() => {
-  const attachNamespace = server.io.of(/^\/attach\/.+$/);
+const geStageIDFromPath = pipe(split("/"), nth(2));
+
+server.ready(async () => {
+  // await instance.init();
+  // instance.compose("https://www.moneycontrol.com/markets/global-indices/");
+  const attachNamespace = server.io.of(/^\/stage\/.+\/view$/);
 
   attachNamespace.on("connection", async (socket) => {
     console.info("Attaching ....");
 
-    const [_, __, sessionId] = socket.nsp.name.split("/");
-    const page = await getPage(sessionId);
+    const stageId = geStageIDFromPath(socket.nsp.name);
+    const page = getPage(instance, stageId);
+    // stage.addAudience().on('*', (...args) => socket.emit(...args));
+    // socket.on('disconnect', audience.leave);
+    // socket.onAny((name, args) => audience[name](...args));
     if (page) {
       page.on(RenderManager.PAGE_EVENT_MESSAGE, (message) => {
         socket.emit(...message);

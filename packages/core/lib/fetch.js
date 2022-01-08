@@ -1,7 +1,42 @@
 import { attachRenderer } from "@rm/remote-render";
 import { getPageId } from "..";
 import { getPage } from "./browser";
-import { extractSourceWith } from "./extensions";
+
+class Request {
+  constructor({requestId, initiator, request}, client) {
+    this.requestId = requestId;
+    this.url = new URL(request.url); // TODO: Add Fragment
+    this.method = request.method;
+    this.headers = request.headers; // TODO: Transform to the needed structure
+    this.data = null; // TODO: Extract from post data
+    this.originType = initiator.type;
+
+    /*
+    url
+    urlFragment
+    method
+    headers
+    postData
+    hasPostData
+    postDataEntries
+    */
+
+    Object.freeze(this);
+  }
+
+  // url = new URL with all the info
+  // method = http method
+  // headers = [{name: '', value: '' || []}]
+  // data = request body
+  // originType = initiator.type
+
+  getResponse() {}
+}
+
+class Response {
+  getBody() {}
+}
+
 
 const fetch = async (source) => {
   const page = await getPage();
