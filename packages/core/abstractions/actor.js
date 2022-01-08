@@ -1,17 +1,10 @@
-import { EventEmitter } from "events";
-import { nanoid } from "nanoid";
+import { Operator } from "./operator";
 
-export class Actor extends EventEmitter {
+export class Actor extends Operator {
   static EVENT_RESOURCE_FOUND = "resourceFound";
 
-  constructor(stage) {
-    super();
-    Object.defineProperty(this, "id", {
-      value: nanoid(),
-      writable: false,
-    });
-    
-    this.stage = stage;
+  constructor() {
+    super(...arguments);
   }
 
   async init() {}
@@ -20,8 +13,21 @@ export class Actor extends EventEmitter {
     throw new MethodNotImplemented("AbstractActor.act");
   }
 
-  // To be invoked with a resource url or information to be fetched/processed by crew
-  resourceFound(resourceURL) {
-    this.emit(AbstractActor.EVENT_RESOURCE_FOUND, resourceURL);
+  getStore(type) {
+    return this.stage.getStore(type);
   }
+
+  // To be invoked with a resource url or information to be fetched/processed by crew
+  // resourceFound(resourceURL) {
+  //   this.emit(AbstractActor.EVENT_RESOURCE_FOUND, resourceURL);
+  // }
 }
+
+/*
+Utilities
+
+MediaStorage.get()
+
+storeMedia(metadata, url|stream|buffer)
+store
+*/

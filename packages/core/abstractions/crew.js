@@ -1,11 +1,10 @@
-import { EventEmitter } from "events";
+import { Operator } from "./operator";
 
-export class Crew extends EventEmitter {
+export class Crew extends Operator {
   static EVENT_RESOURCE_FOUND = "resourceFound";
 
-  constructor(stage) {
-    super();
-    this.stage = stage;
+  constructor() {
+    super(...arguments);
   }
 
   async init() {}
