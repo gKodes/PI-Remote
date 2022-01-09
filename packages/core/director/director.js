@@ -1,9 +1,10 @@
 import { loggerFor, withMeta } from "@rm/logger";
-import { bindAll } from "@rm/utils";
+import { asUrl } from "@rm/utils";
 import { nanoid } from "nanoid";
-import { find, pipe } from "ramda";
-import { getBrowser, getExtensions } from "..";
+import { filter, find, pipe } from "ramda";
+import { AbstractActor, AbstractCrew, getBrowser, getExtensions } from "..";
 import { Stage } from "./stage";
+
 const BROWSER_SYM = Symbol("director.browser");
 const EXTENSIONS_SYM = Symbol("director.extension");
 
@@ -51,11 +52,15 @@ class Director {
   }
 
   getActor({ url, stage }) {
-    // TODO: Identify whey we are getting duplicates
-    return this[EXTENSIONS_SYM].actors[0].getInstance(stage);
+    return find(
+      AbstractActor.isMatch(asUrl(url)),
+      this[EXTENSIONS_SYM].actors
+    )?.getInstance(stage);
   }
 
-  getCrew({}) {}
+  getCrew(request) {
+    return filter(AbstractCrew.isMatch(request)); // TODO: map
+  }
 
   /**
    * The main method to used to fetch the Media Resource
@@ -66,8 +71,6 @@ class Director {
     const stage = await Stage({ url, director: this });
     this.logger.info("Created stage [%s] for %s", stage.id, url);
 
-    console.info(stage)
-
     const page = stage.getPage();
     this.stages.set(stage.id, stage);
 
@@ -76,11 +79,16 @@ class Director {
       // It can be a list of actors
       try {
         if (!frame.isDetached()) {
-          const actor = stage.getActor({ url: frame.url() });
-          actor
-            .act({ frame })
-            .catch(withMeta({ actor: actor.id }, stage.logger.error)); // .catch(log.error(``));
-          // toObj('error'), { actor: actor.id, stage: stage.id }
+          const url = frame.url();
+          const actor = stage.getActor({ url });
+          if (actor) {
+            actor
+              .act({ frame })
+              .catch(withMeta({ actor: actor.id }, stage.logger.error)); // .catch(log.error(``));
+            // toObj('error'), { actor: actor.id, stage: stage.id }
+          } else {
+            this.logger.warn({ url }, "No actors found");
+          }
         }
       } catch (error) {
         console.warn(`Error while acting ${error.message}`, error);

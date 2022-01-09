@@ -8,7 +8,7 @@ then [ { config: { type: 'actor', origin: '*' }, 
     filepath: '/Users/kgadireddy/Desktop/kamal/dev/PI-Remote/packages/crew-default/package.json' } ] 
 */
 
-import { andThen, construct, invoker, pipe, reduce } from "ramda";
+import { andThen, construct, constructN, invoker, pipe, reduce } from "ramda";
 import path from "path";
 import pluralize from "pluralize";
 import { getExtensionConfigs } from "./getExtensionConfigs";
@@ -29,7 +29,7 @@ const getExtensions = pipe(
 
       accumulator[typePlural].push({
         ...config,
-        getInstance: construct(ExtensionType),
+        getInstance: constructN(1, ExtensionType),
       });
 
       return accumulator;

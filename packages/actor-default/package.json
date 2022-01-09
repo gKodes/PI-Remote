@@ -19,6 +19,6 @@
   },
   "rd": {
       "type": "actor",
-      "origin": "*"
+      "origin": "**"
   }
 }

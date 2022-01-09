@@ -1,7 +1,11 @@
+import { curryN } from "ramda";
+import micromatch from "micromatch";
 import { Operator } from "./operator";
 
 export class Actor extends Operator {
   static EVENT_RESOURCE_FOUND = "resourceFound";
+
+  static isMatch = curryN(2, (url, actorInfo) => micromatch.isMatch(url.origin, actorInfo.origin))
 
   constructor() {
     super(...arguments);

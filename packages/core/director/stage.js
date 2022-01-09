@@ -4,6 +4,7 @@ import {
   construct,
   memoizeWith,
   partial,
+  pickAll,
   pipe,
   prop,
   useWith,
@@ -11,9 +12,10 @@ import {
 import modelo from "modelo";
 import { nanoid } from "nanoid";
 import { EventEmitter } from "events";
-import { Request, Response, Intercept } from "../lib";
 import { access, loggerFor } from "@rm/logger";
 import { readOnlyProp } from "@rm/utils";
+import got from "got";
+import { Request, Response, Intercept } from "../lib";
 
 const EXTENSIONS_SYM = Symbol.for("director.extension");
 
@@ -101,6 +103,10 @@ async function Stage({ url, director }) {
       useWith(bind(director.getActor, director), [assoc("stage", this)])
     );
 
+    this.getStore = function () {
+      // TODO: remote render
+    };
+    
     // pipe(
     //   prop("url"),
     //   construct(URL),
@@ -131,6 +137,27 @@ modelo.inherits(Stage, EventEmitter);
 
 Stage.prototype.addAudience = function () {
   // TODO: remote render
+};
+
+/**
+ * Get response from the given Request
+ *
+ * @param {import('../lib/request').Request} request
+ */
+Stage.prototype.getResponse = async function (request) {
+  // TODO: got request and return a Response
+  const response = await get(request.url.href, {
+    ...pickAll(["headers", "data"]),
+    isStream: true
+  });
+
+  // status, url, statusText, headers, intercept
+  return new Response({
+    url: response.url,
+    status: response.statusCode,
+    headers: response.getHeaders(),
+    // New Type of Intercept to fetch data
+  });
 };
 
 Stage.EVENT_RESOURCE_FOUND = Symbol("Stage.event.resourceFound");

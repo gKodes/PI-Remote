@@ -70,7 +70,7 @@ manager - manage file storage and other stuff
   - [X] Configuration (package.json or rc file) and what should the structure be `Maybe one domain per package is good enough to reduce clutter`
   - [ ] Domain Match (domains && regex per file to match) **WIP**
 - [ ] Core
-  - [ ] got integration to fetch an request
+  - [X] got integration to fetch an request **WIP**
   - [ ] HTTP Request Object
   - [ ] HTTP Response Object
 - [ ] Stage
@@ -81,8 +81,8 @@ manager - manage file storage and other stuff
   - [ ] Access manager support (to help check auth status)
   - [ ] Blow Resource Found Event
 - [ ] Director
-  - [ ] Actor match logic
-  - [ ] Crew match and run logic
+  - [X] Actor match logic
+  - [ ] Crew match and run logic **WIP**
   - [ ] run a Show [Show Extension's Support]
   - [ ] Storage Manager integration
 - [ ] Video Player controller and API https://mpv.io
